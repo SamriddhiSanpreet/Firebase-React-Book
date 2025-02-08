@@ -1,49 +1,103 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { auth } from "../Firebase/firebaseConfig";
+import { signOut } from "firebase/auth";
+import styled from "styled-components";
 
 const Header = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
+
+ 
+  const queryParams = new URLSearchParams(location.search);
+  const currentSort = queryParams.get("sort") || "";
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login"); 
+    } catch (error) {
+      alert("Error logging out: " + error.message);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    navigate(`/book-list?search=${searchQuery}&sort=${currentSort}`); 
+  };
+
+  const handleSortChange = (e) => {
+    const newSort = e.target.value;
+    navigate(`/book-list?search=${searchQuery}&sort=${newSort}`);
+  };
+
+  const LOGO = styled.div`
+    h2{
+      color:#000;
+      font-size:40px;
+      font-family: "Pacifico", serif;
+      letter-spacing:5px;
+
+    }
+  `
+  const COL = styled.div`
+    ul li{
+      margin:0 20px;
+    }
+    ul li select{
+      width:150px;
+      padding:5px 2px;
+      border-radius:5px;
+    }
+    ul li .pages{
+      font-size:18px;
+      font-weight:500;
+      color:#000;
+      margin:0 8px;
+      text-decoration:none;
+    }
+  `
   return (
-    <header
-      style={{
-        backgroundColor: "#000",
-        boxShadow:" rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px",
-        padding: "1rem 2rem",
-        textAlign: "center",
-        marginBottom: "2rem",
-        borderRadius: "8px",
-      }}
-    >
-      <nav style={{justifyContent:'space-between',display:'flex'}}>
-        <Link
-          to="/"
-          style={{
-            margin: "0 15px",
-            color: "#fff",
-            textDecoration: "none",
-            fontSize: "1.2rem",
-            fontWeight: "600",
-            transition: "color 0.3s ease",
-          }}
-          onMouseOver={(e) => (e.target.style.color = "#00bcd4")}
-          onMouseOut={(e) => (e.target.style.color = "#fff")}
-        >
-          Add Book
-        </Link>
-        <Link
-          to="/book-list"
-          style={{
-            margin: "0 15px",
-            color: "#fff",
-            textDecoration: "none",
-            fontSize: "1.2rem",
-            fontWeight: "600",
-            transition: "color 0.3s ease",
-          }}
-          onMouseOver={(e) => (e.target.style.color = "#00bcd4")}
-          onMouseOut={(e) => (e.target.style.color = "#fff")}
-        >
-          View Books
-        </Link>
+    <header style={{backgroundColor: '#fff',display:'flex',justifyContent:'space-between',margin:'1rem 8vw 0 8vw',borderRadius:'50px',padding:'5px 2vw',alignItems:'center', boxShadow: 'rgba(255, 255, 255,1) 0px 5px 15px'}}>
+      <LOGO>
+        <h2>LB</h2>
+      </LOGO>
+      <nav>
+        <COL>
+        <ul style={{display:'flex',listStyle:'none',alignItems:'center',marginTop:'1vw'}}>
+          <li>
+            <div>
+            <Link to="/" className="pages">Add Book</Link>
+            <Link to="/book-list" className="pages">View Books</Link>
+            </div>
+          </li>
+          <li>
+            
+            <form onSubmit={handleSearch}>
+              <input
+                type="text"
+                placeholder="Search books..."
+                value={searchQuery}
+                style={{padding:'3px 0 8px 5px',marginRight:'5px',borderRadius:'5px',marginTop:'5px',borderWidth:'1px'}}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button type="submit" className="btn border-primary bg-primary-subtle">Search</button>
+            </form>
+          </li>
+          <li>
+             
+          <select value={currentSort} onChange={handleSortChange}>
+            <option value="">Sort By</option>
+            <option value="title-asc">Title (A-Z)</option>
+            <option value="title-desc">Title (Z-A)</option>
+          </select>    
+          </li>
+          <li>
+          <button onClick={handleLogout} style={{padding:'7px 25px',borderRadius:'5px',border:'none',backgroundColor:'#2196F3',color:'#fff'}}>Logout</button>
+          </li>
+        </ul>
+        </COL>
       </nav>
     </header>
   );
